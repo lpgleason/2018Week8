@@ -1,7 +1,7 @@
 ---
-title: "HW52018"
-author: "Vicki Hertzberg"
-date: "3/5/2018"
+title: "Homework 5"
+author: "Lacey Gleason"
+date: "3/19/2018"
 output: html_document
 ---
 
@@ -25,7 +25,7 @@ packageVersion("RColorBrewer")
 #You will need to download the data from Canvas
 # You will need to change your path
 
-load("~/Downloads/HMPv35.RData")
+load("/Users/Lacey/Desktop/N741/2018Week8/HMPv35.RData")
 
 HMPv35
 
@@ -66,7 +66,15 @@ Subset the HMPv35 object to obtain only the samples from Tongue_dorsum. Call thi
 
 # Fill in your code to subset
 
-# Call the new object HMPv35sub2
+sub <- get_variable(HMPv35, "HMPbodysubsite") %in% c("Tongue_dorsum")
+
+sample_data(HMPv35)$sub <- factor(sub)
+
+HMPv35sub2 <- prune_samples(sample_data(HMPv35)$sub == TRUE, HMPv35)
+
+summary(sample_data(HMPv35sub2))
+
+HMPv35sub2
 
 ```
 
@@ -98,6 +106,11 @@ Produce the geometric box plot of diversity measures for your object, HMPv35sub2
 
 #Place your code for the box plot for diversity here
 
+alpha_meas = c("Observed", "Chao1", "ACE", "Shannon", "Simpson", "InvSimpson")
+(p2 <- plot_richness(HMPv35sub2, "HMPbodysubsite", measures=alpha_meas))
+
+p2 + geom_boxplot(data=p$data, aes(x=HMPbodysubsite, y=value, color=NULL), alpha=0.1)
+
 ```
 
 
@@ -123,7 +136,13 @@ You see what taxa are most prevalent in your subset, HMPv35sub2
 
 ```{r}
 
-#Place your code here
+#Calclate number of taxa in object
+ntaxa(HMPv35sub2)
+
+par(mar = c(10, 4, 4, 2) + 0.1) # make more room on bottom margin
+N <- 20
+barplot(sort(taxa_sums(HMPv35sub2), TRUE)[1:N]/nsamples(HMPv35sub2), las=2)
+
 
 ```
 
@@ -169,6 +188,23 @@ Using your HMPv35sub2 object, throw the rare taxa out of that object, then reduc
 
 #Call the object HMPv35sub2frbac
 
+#Filter out taxa with low occurrence throughout all samples from the HMPv35sub2 object
+
+HMPv35subsub2 = filter_taxa(HMPv35sub2, function(x) sum(x > 3) > (0.2*length(x)), TRUE)
+
+# The next step filters out all taxa that occur in less than .01% of samples
+
+HMPv35sub2r  <- transform_sample_counts(HMPv35subsub2, function(x) x / sum(x) )
+HMPv35sub2fr <- filter_taxa(HMPv35sub2r, function(x) mean(x) > 1e-5, TRUE)
+
+
+HMPv35sub2fr
+
+#Finally subset to only bacteria in the phylum Bacteroidetes
+
+HMPv35sub2frbac = subset_taxa(HMPv35sub2fr, Phylum=="Bacteroidetes")
+HMPv35sub2frbac
+
 ```
 
 Let's look at the top taxa again in this filtered object.
@@ -189,7 +225,11 @@ Using your HMPv35sub2frbac object, what is the distribution of the top 20 OTU's?
 
 ```{r}
 
-#Place your code here.
+ntaxa(HMPv35sub2frbac)
+
+par(mar = c(10, 4, 4, 2) + 0.1) # make more room on bottom margin
+N <- 20
+barplot(sort(taxa_sums(HMPv35sub2frbac), TRUE)[1:N]/nsamples(HMPv35sub2frbac), las=2)
 
 ```
 
@@ -209,8 +249,8 @@ Plot sample abundance by body site for your object HMPv35sub2frbac
 
 ```{r}
 
-#Place your code for the plat here
-
+title = "plot_bar; by site; Bacteroidetes only for HMPv35sub2frbac"
+plot_bar(HMPv35sub2frbac, "HMPbodysubsite", "Abundance", title=title)
 ```
 
 
@@ -228,7 +268,7 @@ You try it with your HMPv35sub2frbac object
 
 ```{r}
 
-#Place your code for your plot with family here
+plot_bar(HMPv35sub2frbac, "HMPbodysubsite", "Abundance", "Phylum", title=title)
 
 ```
 
@@ -252,6 +292,9 @@ Which method of display do you like best and why?
 
 ```{r}
 
-#Place your answer here as another comment.
+#I like the first method of display better because it is easier to distinguish between the colors than the shapes. In this case, I think it is more important to be able to visually discriminate between body sites than between sexes.
 
 ```
+
+#### Link for homework 
+[https://github.com/lpgleason/2018Week8.git](https://github.com/lpgleason/2018Week8.git)
